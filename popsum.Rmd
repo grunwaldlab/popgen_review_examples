@@ -11,6 +11,10 @@ knitr::opts_chunk$set(fig.align = 'center')
 ```
 
 
+Many other examples exist at [Population_Genetics_in_R](http://grunwaldlab.github.io/Population_Genetics_in_R/).
+
+
+This documents how the population summary figure from our population genetics review manuscript was created.
 Our example data set comes from the R package poppr.
 The data set consists of populations of the plant pathogen *P. infestans* which is thought to have a sexual mode or reproduction in Mexico but asexual elsewhere in the world.
 We load the package and the data as follows.
@@ -33,20 +37,32 @@ Pinf.l <- seppop(Pinf)
 ```
 
 
-We can then count the number of multilocus genotypes with the function `mlg.table()`.
+## Multilocus genotypes
+
+When we sample from a population and genotype our samples we typically find that some individuals are identical based on our marker system.
+Each unique combination of alleles can be referred to as a multilocus genotype (MLG).
+We can count the number of multilocus genotypes with the function `mlg.table()`.
 This function will (optionally) create a plot of the data.
-Here we'll plot the data but also save the data as elements of a list so we can make a custom plot later.
+
+
+
+```{r, fig.width = 10, results='hide'}
+mlg.table(Pinf, quiet = TRUE)
+```
+
+
+Here we'll suppress the plot but save the data as elements of a list so we can make a custom plot later.
 
 
 ```{r}
 pop.l <- vector("list", length=4)
-pop.l[[1]] <- mlg.table(Pinf.l[[1]], plot = TRUE)
-pop.l[[2]] <- mlg.table(Pinf.l[[2]], plot = TRUE)
+pop.l[[1]] <- mlg.table(Pinf.l[[1]], plot = FALSE)
+pop.l[[2]] <- mlg.table(Pinf.l[[2]], plot = FALSE)
 ```
 
 
-
-Now let's clone correct.
+When we sample microorganisms we do not necessarily know whether two samples represent different individuals or are different samples from the same clone.
+By removing samples from the data set that have identical multilocus genotypes we clone correct our data set.
 
 
 ```{r poppr6}
@@ -55,7 +71,8 @@ Pinf.l[[4]] <- clonecorrect(Pinf.l[[2]])
 ```
 
 
-And see how this affects the number of MLGs in our dataset.
+We can visualize how this affects the number of MLGs in our dataset by again using the `mlg.table` function.
+
 
 ```{r poppr7}
 pop.l[[5]] <- mlg.table(Pinf.l[[3]], plot = TRUE)
@@ -63,16 +80,37 @@ pop.l[[6]] <- mlg.table(Pinf.l[[4]], plot = TRUE)
 ```
 
 
-And test the clone corrected dataset using the index of association.
+## Index of association
+
+
+The correlation among allelic states at two loci is typically summarized as a measure of linkage disequilibrium.
+A summary of this relationship over many loci is the index of association. 
+This index can help determine if a collection of loci demonstrate a deviation from linkage equilibrium.
 
 
 ```{r poppr8}
-pop.l[[7]] <- ia(Pinf.l[[3]], sample=999, quiet=T, valuereturn=T)
-pop.l[[8]] <- ia(Pinf.l[[4]], sample=999, quiet=T, valuereturn=T)
+pop.l[[3]] <- ia(Pinf.l[[1]], sample=999, quiet=TRUE, valuereturn=T, hist = FALSE)
+pop.l[[4]] <- ia(Pinf.l[[2]], sample=999, quiet=TRUE, valuereturn=T, hist = FALSE)
+
+pop.l[[7]] <- ia(Pinf.l[[3]], sample=999, quiet=TRUE, valuereturn=T)
+pop.l[[8]] <- ia(Pinf.l[[4]], sample=999, quiet=TRUE, valuereturn=T)
 ```
 
 
-Now we can calculate a distance matrix for the data.
+The plots show a histogram of simulated data that are in linkages equilibrium.
+This forms our null hypothesis.
+The dashed line shows our statistic derived from our data.
+The population from South America has an $\bar{r}_{d}$ of 0.3 which is well beyond the limits of our simulations based on loci that are in equilibrium.
+The population from North America has an $\bar{r}_{d}$ of 0.008 which is within our null distribution.
+Bsed on this information we may conclude that the population from S. America is in linkage disequilibrium while the population from N. America is in a state of linkage equilibrium.
+
+
+## Distance matrices
+
+
+Distance matrices are a common way of summarizing multivariate data.
+Many options are available in a number of R packages.
+Here we use `diss.dist` from the package poppr.
 
 
 ```{r poppr9}
@@ -83,7 +121,11 @@ Pinf.l[[8]] <- diss.dist(Pinf.l[[4]], percent = FALSE)
 ```
 
 
-We can make a minimum spanning network.
+## Minimum spanning network
+
+
+One way of visualizng the data in a distance matrix is with a minimum spanning network.
+
 
 ```{r poppr10}
 Pinf.l[[9]] <- poppr.msn(Pinf.l[[1]], Pinf.l[[5]])
@@ -91,9 +133,13 @@ Pinf.l[[10]] <- poppr.msn(Pinf.l[[2]], Pinf.l[[6]])
 ```
 
 
-Or neighbor-joining trees.
+## Neighbor-joining trees
 
-```{r poppr11}
+
+Another way of visualizng the data in a distance matrix is with a neighbor-joining tree.
+
+
+```{r poppr11, fig.height=8}
 library(ape)
 Pinf.l[[11]] <- nj(Pinf.l[[5]])
 Pinf.l[[12]] <- nj(Pinf.l[[6]])
@@ -104,22 +150,196 @@ axis(side=1)
 ```
 
 
-And we can use k-means clustering to determine the number of groups.
+## Untrained clustering
 
 
-```{r poppr12}
+A typical research question is how many groups exist within our sample.
+This can be addressed with untrained clustering methods.
+Here we use k-means clustering to determine the number of groups in our sample.
+
+
+```{r poppr12, message=FALSE}
 Pinf.l[[13]] <- find.clusters(Pinf.l[[1]], max.n = 20, n.pca = 10, scale = FALSE, choose.n.clust=F, quiet=T)
 Pinf.l[[14]] <- find.clusters(Pinf.l[[2]], max.n = 20, n.pca = 10, scale = FALSE, choose.n.clust=F)
 Pinf.l[[15]] <- find.clusters(Pinf.l[[3]], max.n = 20, n.pca = 10, scale = FALSE, choose.n.clust=F)
 Pinf.l[[16]] <- find.clusters(Pinf.l[[4]], max.n = 20, n.pca = 10, scale = FALSE, choose.n.clust=F)
+```
 
-plot(1:20, Pinf.l[[13]]$Kstat, type='b', col=4, main="S. America")
+
+
+```{r}
+#plot(1:20, Pinf.l[[13]]$Kstat, type='b', col=4, main="S. America")
 plot(1:20, Pinf.l[[15]]$Kstat, type='b', col=4, main="S. America - CC")
 
-plot(1:20, Pinf.l[[14]]$Kstat, type='b', col=4, main="N. America")
+#plot(1:20, Pinf.l[[14]]$Kstat, type='b', col=4, main="N. America")
 plot(1:20, Pinf.l[[16]]$Kstat, type='b', col=4, main="N. America- CC")
 ```
 
+
+As we increase the number of groups our Kstat statistic decreases.
+Typically, these plots are explored to determine a point where including additional groups does not dramatically decrease the Kstat.
+For the N. American data this may occur at either 8 or 10 groups.
+
+
+## Creating a composite figure
+
+
+We've implemented each of the steps above independently of one another.
+It is frequently nice to group multiple analyses into a single graphic with custom elements.
+Here we demonstrate how to use the information we've gathered above to create a custom graphic.
+
+
+One analysis we'd like to include that was not performed in R was the Bayesian clustering software STRUCTURE.
+Here we read in the result from this program from a spreadsheet.
+
+
+```{r, message=FALSE}
+library(gdata)
+mex <- read.xls("./structure_out.xls", sheet = 'mx_k=4', header = TRUE)
+sa <- read.xls ("./structure_out.xls", sheet = 'sa_k=2', header = TRUE)
+```
+
+
+Now we are ready to create a composite plot.
+We'll use the function`layout` to specify the geometry of the plot.
+Then we'll plot each frame.
+
+
+```{r, fig.width=10, fig.height=12, message=FALSE}
+library(igraph)
+library(ape)
+
+par(mfrow=c(1,1))
+par(mar=c(5,4,4,2))
+
+
+#tiff('popsum4.tiff', width=183, height=220, units='mm', pointsize=10, res=300)
+#pdf('popsum4.pdf', width=7.2, height=8.66, pointsize=10)
+
+par(oma=c(0,1,0,0))
+panei <- 1
+
+layout(matrix(1:12, ncol=2, nrow=6, byrow=F), widths=c(1,1), heights=c(1,0.4,1,2,2,1))
+
+par(mar=c(1,2,1,2))
+par(mgp=c(2, 0.6, 0))
+barplot(sort(pop.l[[1]], decreasing=T),
+        beside=T, las=3,
+        names.arg=NA,
+        col=c("#0080ff66"), space=0,
+        ylim=c(0,4),
+        axes=F)
+title(main="Asexual")
+axis(side=2, line= -0.4)
+mtext("A", side=3, line=-1, font=2, adj= -0.09, cex=panei, srt=270)
+
+barplot(sort(pop.l[[5]], decreasing=T),
+        beside=T, las=3,
+        names.arg=NA,
+        col=c("#9932CC66"),
+        space=0,
+        ylim=c(0,1), axes=F)
+axis(side=2, at=c(0,1), labels=c("", 1), line= -0.4)
+mtext("B", side=3, line=-0.2, font=2, adj= -0.09, cex=panei)
+
+
+d1 <- density(pop.l[[3]]$samples$Ia)
+d2 <- density(pop.l[[7]]$samples$Ia)
+#
+plot(d1, main="", xlim=c(-0.5,3), xlab="", ylab="", type="n", 
+     axes=F)
+polygon(d1, col="#0080ff66", border="#0080ff", lwd=0.1)
+polygon(d2, col="#9932CC66", border="#9932CC", lwd=0.1)
+lines(x=c(pop.l[[3]]$index['Ia'],pop.l[[3]]$index['Ia']), y=c(0,4), col="#0080ffff", lty=1, lwd=2)
+lines(x=c(pop.l[[7]]$index['Ia'],pop.l[[7]]$index['Ia']), y=c(0,4), col="#9932CCff", lty=1, lwd=2)
+axis(side=1, at=seq(-0.5, 3.0, by=0.5), labels=c("", 0, "", 1, "", 2, "", 3))
+mtext("C", side=3, line=-1, font=2, adj= -0.09, cex=panei)
+
+
+par(mar=c(0,2,0,0))
+set.seed(1)
+plot.igraph(Pinf.l[[9]]$graph, vertex.label=NA, 
+            vertex.size=get.vertex.attribute(Pinf.l[[9]]$graph, 'size')*8,
+            edge.width=get.edge.attribute(Pinf.l[[9]]$graph, 'width')*4,
+            vertex.color="#0080ff66")
+mtext("D", side=3, line=-3, font=2, adj= -0.08, cex=panei)
+
+par(mar=c(0,2,0,0))
+ecol <- rep(1, times=nrow(Pinf.l[[11]]$edge))
+
+
+ncolv <- rep(1, times=nrow(Pinf.l[[11]]$edge))
+ncolv[1:3] <- 'white'
+ncolv[4] <- 'white'
+ncolv[73] <- 'white'
+
+plot(Pinf.l[[11]], type="p", show.tip.label=F, edge.color=ncolv)
+mtext("E", side=3, line= -0.8, font=2, adj= -0.08, cex=panei)
+
+barplot(t(sa[,-1]), axes=F, col=c("#0080ff66","#9932CC66"), space=0)
+mtext("F", side=3, line= -1.2, font=2, adj= -0.08, cex=panei)
+
+##### Column 2 #####
+
+par(mar=c(1,2,1,2))
+
+barplot(sort(pop.l[[2]], decreasing=T),
+        beside=T, las=3,
+        names.arg=NA,
+        col="#0080ff66", space=0,
+        ylim=c(0,4), axes=F)
+title(main="Sexual")
+axis(side=2, line= -0.4)
+mtext("G", side=3, line=-1, font=2, adj= -0.1, cex=panei)
+
+barplot(sort(pop.l[[6]], decreasing=T),
+        beside=T, las=3,
+        names.arg=NA,
+        col="#9932CC66", space=0,
+        ylim=c(0,1), axes=F)
+axis(side=2, line= -0.4, at=c(0,1), labels=c("", 1))
+mtext("H", side=3, line=-0.2, font=2, adj= -0.1, cex=panei)
+
+
+d1 <- density(pop.l[[4]]$samples$Ia)
+d2 <- density(pop.l[[8]]$samples$Ia)
+#
+plot(d1, main="", xlim=c(-0.5,3), xlab="", ylab="", type="n", 
+     axes=F)
+polygon(d1, col="#0080ff66", border="#0080ff", lwd=0.1)
+polygon(d2, col="#9932CC66", border="#9932CC", lwd=0.1)
+lines(x=c(pop.l[[4]]$index['Ia'],pop.l[[4]]$index['Ia']), y=c(0,4), col="#0080ffff", lty=1, lwd=2)
+lines(x=c(pop.l[[8]]$index['Ia'],pop.l[[8]]$index['Ia']), y=c(0,4), col="#9932CCff", lty=1, lwd=2)
+legend('topright', legend=c("All samples", "Clone-corrected"),
+       fill=c("#0080ff66", "#9932CC66"),
+       border=NA,
+       bty="n", cex=1.0, text.font=2)
+axis(side=1, at=seq(-0.5, 3.0, by=0.5), labels=c("", 0, "", 1, "", 2, "", 3))
+mtext("I", side=3, line=-1, font=2, adj= -0.08, cex=panei)
+
+par(mar=c(0,2,0,0))
+set.seed(1)
+plot.igraph(Pinf.l[[10]]$graph, vertex.label=NA, 
+            vertex.size=get.vertex.attribute(Pinf.l[[10]]$graph, 'size')*8,
+            edge.width=get.edge.attribute(Pinf.l[[10]]$graph, 'width')*4,
+            vertex.color="#0080ff66")
+mtext("J", side=3, line=-3, font=2, adj= -0.08, cex=panei)
+
+par(mar=c(0,2,0,0))
+plot(Pinf.l[[12]], type="p", show.tip.label=F)
+mtext("K", side=3, line=-1, font=2, adj= -0.08, cex=panei)
+
+barplot(t(mex[,-1]), axes=F, col=c("#0080ff66","#B2222266", "#3CB37166", "#9932CC66"), space=0)
+mtext("L", side=3, line= -1.2, font=2, adj= -0.06, cex=panei)
+
+#dev.off()
+
+```
+
+
+In order to create a graphic file uncomment either the 'tiff' or the 'pdf' statement at the top of the code chunck as well as the 'dev.off()' statement at the bottom (to close the file handle).
+This last graphic is a bit involved.
+But you can hopefully see the value in plotting each step individually before scaling to a composite plot as we've created here.
 
 
 
