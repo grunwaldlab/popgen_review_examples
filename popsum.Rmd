@@ -21,7 +21,7 @@ We load the package and the data as follows.
 
 
 ```{r}
-library(poppr)
+library("poppr")
 data("Pinf", package = "poppr")
 Pinf
 ```
@@ -194,9 +194,9 @@ Here we read in the result from this program from a spreadsheet.
 
 
 ```{r, message=FALSE}
-library(gdata)
-mex <- read.xls("./structure_out.xls", sheet = 'mx_k=4', header = TRUE)
-sa <- read.xls ("./structure_out.xls", sheet = 'sa_k=2', header = TRUE)
+library("readxl")
+mex <- read_excel("./structure_out.xls", sheet = 'mx_k=4')
+sa  <- read_excel("./structure_out.xls", sheet = 'sa_k=2')
 ```
 
 
