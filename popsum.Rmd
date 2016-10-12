@@ -260,7 +260,7 @@ par(mar=c(0,2,0,0))
 set.seed(1)
 plot.igraph(Pinf.l[[9]]$graph, vertex.label=NA, 
             vertex.size=get.vertex.attribute(Pinf.l[[9]]$graph, 'size')*8,
-            edge.width=get.edge.attribute(Pinf.l[[9]]$graph, 'width')*4,
+            edge.width=get.edge.attribute(Pinf.l[[9]]$graph, 'width')*0.75,
             vertex.color="#0080ff66")
 mtext("D", side=3, line=-3, font=2, adj= -0.08, cex=panei)
 
@@ -321,7 +321,7 @@ par(mar=c(0,2,0,0))
 set.seed(1)
 plot.igraph(Pinf.l[[10]]$graph, vertex.label=NA, 
             vertex.size=get.vertex.attribute(Pinf.l[[10]]$graph, 'size')*8,
-            edge.width=get.edge.attribute(Pinf.l[[10]]$graph, 'width')*4,
+            edge.width=get.edge.attribute(Pinf.l[[10]]$graph, 'width')*0.75,
             vertex.color="#0080ff66")
 mtext("J", side=3, line=-3, font=2, adj= -0.08, cex=panei)
 
