@@ -1,0 +1,130 @@
+---
+title: "Population summary"
+author: "Brian Knaus"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.align = 'center')
+```
+
+
+Our example data set comes from the R package poppr.
+The data set consists of populations of the plant pathogen *P. infestans* which is thought to have a sexual mode or reproduction in Mexico but asexual elsewhere in the world.
+We load the package and the data as follows.
+
+
+```{r}
+library(poppr)
+data("Pinf", package = "poppr")
+Pinf
+```
+
+
+This loads an object of class 'genclone' that contains our data into our environment.
+By calling the object by its name we've printed some information about it.
+Under 'population information' we see that there are two populations defined, one for South America and one for North America.  We can subset the data to populations as follows.
+
+
+```{r}
+Pinf.l <- seppop(Pinf)
+```
+
+
+We can then count the number of multilocus genotypes with the function `mlg.table()`.
+This function will (optionally) create a plot of the data.
+Here we'll plot the data but also save the data as elements of a list so we can make a custom plot later.
+
+
+```{r}
+pop.l <- vector("list", length=4)
+pop.l[[1]] <- mlg.table(Pinf.l[[1]], plot = TRUE)
+pop.l[[2]] <- mlg.table(Pinf.l[[2]], plot = TRUE)
+```
+
+
+
+Now let's clone correct.
+
+
+```{r poppr6}
+Pinf.l[[3]] <- clonecorrect(Pinf.l[[1]])
+Pinf.l[[4]] <- clonecorrect(Pinf.l[[2]])
+```
+
+
+And see how this affects the number of MLGs in our dataset.
+
+```{r poppr7}
+pop.l[[5]] <- mlg.table(Pinf.l[[3]], plot = TRUE)
+pop.l[[6]] <- mlg.table(Pinf.l[[4]], plot = TRUE)
+```
+
+
+And test the clone corrected dataset using the index of association.
+
+
+```{r poppr8}
+pop.l[[7]] <- ia(Pinf.l[[3]], sample=999, quiet=T, valuereturn=T)
+pop.l[[8]] <- ia(Pinf.l[[4]], sample=999, quiet=T, valuereturn=T)
+```
+
+
+Now we can calculate a distance matrix for the data.
+
+
+```{r poppr9}
+Pinf.l[[5]] <- diss.dist(Pinf.l[[1]], percent = FALSE)
+Pinf.l[[6]] <- diss.dist(Pinf.l[[2]], percent = FALSE)
+Pinf.l[[7]] <- diss.dist(Pinf.l[[3]], percent = FALSE)
+Pinf.l[[8]] <- diss.dist(Pinf.l[[4]], percent = FALSE)
+```
+
+
+We can make a minimum spanning network.
+
+```{r poppr10}
+Pinf.l[[9]] <- poppr.msn(Pinf.l[[1]], Pinf.l[[5]])
+Pinf.l[[10]] <- poppr.msn(Pinf.l[[2]], Pinf.l[[6]])
+```
+
+
+Or neighbor-joining trees.
+
+```{r poppr11}
+library(ape)
+Pinf.l[[11]] <- nj(Pinf.l[[5]])
+Pinf.l[[12]] <- nj(Pinf.l[[6]])
+plot(Pinf.l[[11]])
+axis(side=1)
+plot(Pinf.l[[12]])
+axis(side=1)
+```
+
+
+And we can use k-means clustering to determine the number of groups.
+
+
+```{r poppr12}
+Pinf.l[[13]] <- find.clusters(Pinf.l[[1]], max.n = 20, n.pca = 10, scale = FALSE, choose.n.clust=F, quiet=T)
+Pinf.l[[14]] <- find.clusters(Pinf.l[[2]], max.n = 20, n.pca = 10, scale = FALSE, choose.n.clust=F)
+Pinf.l[[15]] <- find.clusters(Pinf.l[[3]], max.n = 20, n.pca = 10, scale = FALSE, choose.n.clust=F)
+Pinf.l[[16]] <- find.clusters(Pinf.l[[4]], max.n = 20, n.pca = 10, scale = FALSE, choose.n.clust=F)
+
+plot(1:20, Pinf.l[[13]]$Kstat, type='b', col=4, main="S. America")
+plot(1:20, Pinf.l[[15]]$Kstat, type='b', col=4, main="S. America - CC")
+
+plot(1:20, Pinf.l[[14]]$Kstat, type='b', col=4, main="N. America")
+plot(1:20, Pinf.l[[16]]$Kstat, type='b', col=4, main="N. America- CC")
+```
+
+
+
+
+## Session information
+
+```{r}
+sessionInfo()
+```
