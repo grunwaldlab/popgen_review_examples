@@ -10,9 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(fig.align = 'center')
 ```
 
+***
 
 Many other examples exist at [Population_Genetics_in_R](http://grunwaldlab.github.io/Population_Genetics_in_R/).
 
+***
 
 This documents how the population summary figure from our population genetics review manuscript was created.
 Our example data set comes from the R package poppr.
