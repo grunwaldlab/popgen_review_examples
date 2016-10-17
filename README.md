@@ -9,7 +9,7 @@ Make sure the file is saved to your lcoal harddrive before opening it in a brows
 - Sections containing R code can be copied and pasted from the html document into an R console so the example can be reproduced.
 - Users that are familiar with Rmarkdown may want to download the Rmd file and compile the html code themselves.
 - Users familiar with GitHub may want to [clone](https://help.github.com/articles/cloning-a-repository/) or [fork](https://help.github.com/articles/fork-a-repo/) the repository.
-- USers can also open the Rproj file in [R Studio](https://www.rstudio.com/). 
+- Users can also open the Rproj file in [R Studio](https://www.rstudio.com/). 
 
 The goal of Rmarkdown is to provide an easy manner in which to share examples.
 This project was prepared using Rmarkdown.
