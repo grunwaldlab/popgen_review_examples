@@ -11,7 +11,7 @@ Make sure the file is saved to your lcoal harddrive before opening it in a brows
 - Users familiar with GitHub may want to [clone](https://help.github.com/articles/cloning-a-repository/) or [fork](https://help.github.com/articles/fork-a-repo/) the repository.
 - Users can also open the Rproj file in [R Studio](https://www.rstudio.com/). 
 
-The goal of Rmarkdown is to provide an easy manner in which to share examples.
+The goal of Rmarkdown is to provide an easy manner in which to share [examples](http://grunwaldlab.github.io/Reproducible-science-in-R/).
 This project was prepared using Rmarkdown.
 [Markdown](https://daringfireball.net/projects/markdown/) is a language that creates simple html files.
 [Rmarkdown](http://rmarkdown.rstudio.com/) is an extension to Markdown that allows us to include R code in the resulting html file.
